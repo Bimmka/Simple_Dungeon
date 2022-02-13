@@ -1,5 +1,6 @@
 using Systems.Healths;
 using Animations;
+using Services.PlayerData;
 using StateMachines.Player;
 using StaticData.Hero.Components;
 using UnityEngine;
@@ -16,9 +17,7 @@ namespace Hero
         
         private HeroAttackStaticData attackData;
         private HeroImpactsStaticData impactsData;
-
-        private IHealth health;
-
+        
         public PlayerAttackState AttackState { get; private set; }
         public PlayerHurtState ImpactState { get; private set; }
         public PlayerIdleShieldState IdleShieldState { get; private set; }
@@ -36,12 +35,11 @@ namespace Hero
         public Vector2 MoveAxis { get; private set; }
         public float RotateAngle { get; private set; }
 
-        public void Construct(HeroAttackStaticData attackData, HeroImpactsStaticData impactData, IHealth health)
+        public void Construct(HeroAttackStaticData attackData, HeroImpactsStaticData impactData, PlayerCharacteristics characteristics)
         {
             this.attackData = attackData;
-            this.health = health;
             impactsData = impactData;
-            attack.Construct(attackData);
+            attack.Construct(attackData, characteristics);
             Initialize();
         }
 
@@ -49,14 +47,12 @@ namespace Hero
         {
             base.Subscribe();
             battleAnimator.Triggered += AnimationTriggered;
-            health.Dead += Dead;
         }
 
         protected override void Cleanup()
         {
             base.Cleanup();
             battleAnimator.Triggered -= AnimationTriggered;
-            health.Dead -= Dead;
             AttackState.Cleanup();
         }
 
@@ -71,7 +67,7 @@ namespace Hero
             ShieldImpactState = new PlayerShieldImpactState(stateMachine, "IsShieldImpact", battleAnimator, this, impactsData.ShieldImpactCooldown);
             MoveState = new PlayerMoveState(stateMachine, "IsIdle", "MoveX", battleAnimator, this, move, rotate);
             ShieldMoveState = new PlayerShieldMoveState(stateMachine, "IsBlocking", "MoveY", battleAnimator, this, move, rotate);
-            DeathState = new PlayerDeathState(stateMachine, "IsDead", battleAnimator);
+            DeathState = new PlayerDeathState(stateMachine, "IsDead", battleAnimator, this);
         }
 
         protected override void SetDefaultState() => 
@@ -108,7 +104,7 @@ namespace Hero
         public void SetRotate(float rotateAngle) => 
             RotateAngle = rotateAngle;
 
-        private void Dead()
+        public void Dead()
         {
             stateMachine.ChangeState(DeathState);
         }

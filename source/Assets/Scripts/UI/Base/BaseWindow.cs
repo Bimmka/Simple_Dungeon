@@ -8,13 +8,6 @@ namespace UI.Base
   public class BaseWindow : MonoBehaviour
   {
     public event Action<BaseWindow> Destroyed;
-    
-    protected IGameStateMachine gameStateMachine;
-
-    public void Construct(IGameStateMachine gameStateMachine)
-    {
-      this.gameStateMachine = gameStateMachine;
-    }
 
     private void Awake() => 
       OnAwake();
@@ -42,10 +35,10 @@ namespace UI.Base
     private void CloseWindow() => 
       gameObject.SetActive(false);
 
-    public void Open() => 
+    public virtual void Open() => 
       gameObject.SetActive(true);
 
-    public void Close() => 
+    public virtual void Close() => 
       CloseWindow();
   }
 }
