@@ -1,4 +1,6 @@
-﻿using GameStates.States.Interfaces;
+﻿using Bootstrapp;
+using Enemies.Spawn;
+using GameStates.States.Interfaces;
 using Input;
 using SceneLoading;
 using Services;
@@ -11,6 +13,7 @@ using Services.SaveLoad;
 using Services.StaticData;
 using Services.UI.Factory;
 using Services.UI.Windows;
+using Services.Waves;
 
 namespace GameStates.States
 {
@@ -20,12 +23,12 @@ namespace GameStates.States
     private readonly IGameStateMachine gameStateMachine;
     private readonly AllServices services;
 
-    public BootstrapState(IGameStateMachine gameStateMachine, ISceneLoader sceneLoader, ref AllServices services)
+    public BootstrapState(IGameStateMachine gameStateMachine, ISceneLoader sceneLoader, ref AllServices services, ICoroutineRunner coroutineRunner)
     {
       this.gameStateMachine = gameStateMachine;
       this.sceneLoader = sceneLoader;
       this.services = services;
-      RegisterServices();
+      RegisterServices(coroutineRunner);
     }
 
     public void Enter()
@@ -38,7 +41,7 @@ namespace GameStates.States
       
     }
 
-    private void RegisterServices()
+    private void RegisterServices(ICoroutineRunner coroutineRunner)
     {
       RegisterStateMachine();
       RegisterInputService();
@@ -48,18 +51,30 @@ namespace GameStates.States
       RegisterStaticDataService();
       RegisterAssets();
       RegisterUIFactory();
+      RegisterEnemiesFactory();
+      RegisterEnemiesSpawner();
       RegisterGameFactory();
+      RegisterWaveService(coroutineRunner);
       RegisterWindowsService();
     }
+
+    private void RegisterWaveService(ICoroutineRunner coroutineRunner) => 
+      services.RegisterSingle<IWaveServices>(new WaveServices(services.Single<IEnemySpawner>(), coroutineRunner));
+
+    private void RegisterEnemiesSpawner() => 
+      services.RegisterSingle<IEnemySpawner>(new EnemySpawner(services.Single<IEnemiesFactory>()));
+
+    private void RegisterEnemiesFactory() => 
+      services.RegisterSingle<IEnemiesFactory>(new EnemiesFactory(services.Single<IAssetProvider>(), services.Single<IStaticDataService>()));
 
     private void RegisterGameFactory()
     {
       services.RegisterSingle<IGameFactory>(new GameFactory(
         services.Single<IAssetProvider>(), 
-        services.Single<IStaticDataService>(), 
-        services.Single<IPersistentProgressService>(),
-        services.Single<IWindowsService>(), 
-        services.Single<IInputService>()));
+        services.Single<IStaticDataService>(),
+        services.Single<IInputService>(),
+        services.Single<IEnemiesFactory>(), 
+        services.Single<IEnemySpawner>()));
     }
 
     private void RegisterStateMachine() => 

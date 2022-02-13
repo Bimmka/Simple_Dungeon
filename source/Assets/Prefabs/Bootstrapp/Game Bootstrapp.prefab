@@ -45,3 +45,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   curtainPrefab: {fileID: 8075571456176229582, guid: f20aee6b00472ae49a0feb1e2abbf484, type: 3}
+  timer: {fileID: 8978480289571276413, guid: 4a3fe7cdde7f2424fbf62fc4c46dab02, type: 3}
