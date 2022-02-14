@@ -20,8 +20,8 @@ namespace Hero
 
         private void TakeDamage(float damage)
         {
-            health.TakeDamage(damage);
             hero.Impact();
+            health.TakeDamage(damage);
         }
 
         private void AbsorbDamage() => 
